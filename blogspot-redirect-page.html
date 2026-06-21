@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redirecting...</title>
+
+  <!--
+    ============================================================
+    BLOGSPOT REDIRECT SNIPPET
+    ============================================================
+    Cara pakai di Blogger:
+    1. Login ke Blogger → buat Page baru (Pages → New page)
+    2. Klik mode HTML (ikon <>) di editor
+    3. Paste seluruh isi file ini (atau minimal blok <script> di bawah)
+    4. Save & Publish page tersebut
+    5. Salin URL page tersebut (mis. https://NAMABLOG.blogspot.com/p/redirect.html)
+    6. Set URL tersebut sebagai BLOGSPOT_URL di env variable Netlify
+
+    Cara kerja:
+    - Netlify short URL (mis. https://situsmu.netlify.app/abc123) → 301 redirect ke
+      https://NAMABLOG.blogspot.com/p/redirect.html?to=<URL_TUJUAN_URLENCODED>
+    - Snippet ini baca query param ?to=... lalu redirect ke URL tujuan.
+    ============================================================
+  -->
+
+  <!--
+    OPSIONAL: tampilkan halaman singkat dulu sebelum redirect.
+    Hapus komentar pada blok <style> & <body> di bawah kalau mau pakai UI.
+  -->
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      background: #f7f7f9;
+      color: #1f2937;
+      text-align: center;
+      padding: 1rem;
+    }
+    .box {
+      max-width: 480px;
+      background: #fff;
+      padding: 2rem 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    }
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid #e5e7eb;
+      border-top-color: #2563eb;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 1rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .title { font-size: 1.05rem; font-weight: 600; margin: 0 0 0.25rem; }
+    .subtitle { font-size: 0.875rem; color: #6b7280; margin: 0; }
+    .manual-link {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 0.85rem;
+      color: #2563eb;
+      text-decoration: none;
+    }
+    .manual-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="spinner"></div>
+    <p class="title">Mengarahkan ke halaman tujuan...</p>
+    <p class="subtitle">Mohon tunggu sebentar.</p>
+    <a class="manual-link" id="manualLink" href="#" style="display:none;">Klik di sini kalau tidak otomatis</a>
+  </div>
+
+  <script>
+    (function () {
+      // === KONFIGURASI ===
+      var REDIRECT_DELAY_MS = 0;      // 0 = langsung. Ganti ke 3000 = tunggu 3 detik.
+      var PARAM_NAMES = ["to", "url"]; // nama query param yang dibaca (urutan prioritas)
+
+      function isValidHttpUrl(str) {
+        try {
+          var u = new URL(str);
+          return u.protocol === "http:" || u.protocol === "https:";
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function getTarget() {
+        var params = new URLSearchParams(window.location.search);
+        for (var i = 0; i < PARAM_NAMES.length; i++) {
+          var val = params.get(PARAM_NAMES[i]);
+          if (val && isValidHttpUrl(val)) {
+            return val;
+          }
+        }
+        // Coba juga dari hash (#to=...) kalau ada
+        if (window.location.hash && window.location.hash.indexOf("=") !== -1) {
+          var hashParams = new URLSearchParams(
+            window.location.hash.charAt(0) === "#"
+              ? window.location.hash.slice(1)
+              : window.location.hash
+          );
+          for (var j = 0; j < PARAM_NAMES.length; j++) {
+            var hVal = hashParams.get(PARAM_NAMES[j]);
+            if (hVal && isValidHttpUrl(hVal)) {
+              return hVal;
+            }
+          }
+        }
+        return null;
+      }
+
+      function doRedirect(target) {
+        // pakai location.replace biar tidak menambah history entry
+        window.location.replace(target);
+      }
+
+      var target = getTarget();
+      var manualLink = document.getElementById("manualLink");
+
+      if (target) {
+        if (manualLink) {
+          manualLink.href = target;
+          manualLink.style.display = "inline-block";
+        }
+        if (REDIRECT_DELAY_MS > 0) {
+          setTimeout(function () { doRedirect(target); }, REDIRECT_DELAY_MS);
+        } else {
+          doRedirect(target);
+        }
+      } else {
+        // Tidak ada target valid — biarkan user tetap di page blogspot ini.
+        // Bisa diganti dengan window.location.href = "/" kalau mau fallback ke homepage.
+        if (manualLink) {
+          manualLink.textContent = "Tidak ada URL tujuan yang valid.";
+          manualLink.style.display = "inline-block";
+          manualLink.style.pointerEvents = "none";
+          manualLink.style.color = "#6b7280";
+        }
+      }
+    })();
+  </script>
+</body>
+</html>
