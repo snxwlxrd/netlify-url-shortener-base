@@ -5,6 +5,14 @@ const BLOGSPOT_URL =
 
 const TARGET_PARAM = "to";
 
+const CRAWLER_PATTERN =
+  /(facebookexternalhit|Facebot|WhatsApp|TelegramBot|Twitterbot|Slackbot|Discordbot|LinkedInBot|Pinterest|Pinterestbot|Googlebot|Google-Read-Aloud|Google-PageRenderer|GoogleImageProxy|GoogleStructuredDataTestingTool|Googlebot-Image|Googlebot-News|Googlebot-Video|AdsBot-Google|mediapartners-Google|bingbot|BingPreview|Applebot|AppleCoreMedia|SkypeUriPreview|Snapchat|Viber|Line\/|WeChat|Bytespider|YandexBot|Yahoo! Slurp|Baiduspider|Sogou|Exabot|facebot|ia_archiver|AhrefsBot|SemrushBot|MJ12bot|DotBot|Curl|python-requests|Go-http-client)/i;
+
+function isCrawler(userAgent) {
+  if (!userAgent) return false;
+  return CRAWLER_PATTERN.test(userAgent);
+}
+
 export default async (req, context) => {
   const code = context.params.code;
   const store = getStore({ name: "links", consistency: "strong" });
@@ -33,6 +41,19 @@ export default async (req, context) => {
     });
   }
 
+  const userAgent = req.headers.get("user-agent") || "";
+
+  if (isCrawler(userAgent)) {
+    return new Response(null, {
+      status: 301,
+      headers: {
+        Location: target,
+        "Cache-Control": "public, max-age=86400",
+        Vary: "User-Agent",
+      },
+    });
+  }
+
   const separator = BLOGSPOT_URL.includes("?") ? "&" : "?";
   const interstitial = `${BLOGSPOT_URL}${separator}${TARGET_PARAM}=${encodeURIComponent(target)}`;
 
@@ -41,6 +62,7 @@ export default async (req, context) => {
     headers: {
       Location: interstitial,
       "Cache-Control": "public, max-age=86400",
+      Vary: "User-Agent",
     },
   });
 };
