@@ -11,7 +11,7 @@ import { getStore } from "@netlify/blobs";
  * Default "https://blogspot.com" cuma placeholder. WAJIB diganti lewat env var,
  * karena blogspot.com root domain tidak menjalankan snippet redirect milikmu.
  */
-const BLOGSPOT_URL = process.env.BLOGSPOT_URL || "http://zaphkielxxi-redirect.blogspot.com/";
+const BLOGSPOT_URL = process.envhttp://zaphkielxxi-redirect.blogspot.com || "http://blogspot.com";
 
 /**
  * Nama query parameter yang dipakai untuk mengoper URL tujuan ke blogspot.
