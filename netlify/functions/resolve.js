@@ -1,24 +1,6 @@
 import { getStore } from "@netlify/blobs";
 
-/**
- * Resolve code → target URL. Dipanggil oleh blogspot snippet (client-side JS)
- * untuk dapat target URL tanpa reveal target di URL bar blogspot.
- *
- * Flow:
- *   1. User klik short URL → Netlify 301 redirect ke blogspot (?<code>)
- *   2. Blogspot snippet baca code dari URL
- *   3. Blogspot snippet fetch ke /api/resolve?code=<code>
- *   4. Function ini return JSON { target: "https://..." }
- *   5. Blogspot snippet window.location.replace(target)
- *
- * CORS: dibuka untuk semua origin (*) supaya blogspot bisa fetch.
- * Kalau mau restrict, ganti * dengan URL blogspot kamu.
- *
- * Keamanan: function ini tidak reveal apa-apa selain target URL.
- * Tidak ada logging, tidak ada analytics. Cuma lookup Blobs.
- */
 export default async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
