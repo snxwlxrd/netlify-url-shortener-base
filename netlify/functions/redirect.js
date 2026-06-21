@@ -12,7 +12,6 @@ export default async (req, context) => {
     });
   }
 
-  // 301 = redirect permanen, langsung ke URL tujuan, tanpa halaman perantara
   return new Response(null, {
     status: 301,
     headers: { Location: target },
