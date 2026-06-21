@@ -47,7 +47,6 @@ export default async (req) => {
     );
   }
 
-  // batasi biar gak disalahgunakan untuk spam masal dalam satu request
   const limited = longUrls.slice(0, 200);
 
   const store = getStore({ name: "links", consistency: "strong" });
